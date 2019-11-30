@@ -8,11 +8,13 @@ import svm
 
 
 def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier):
-    stdp = True  # stdp enabled
+    stdp = False  # stdp enabled
     dim1 = [3, 3, 15]
-    r1 = reservoir.ReservoirLayer(n_inputs, 135, n_steps, dim1, is_input=True, homeostasis=True)
-    r2 = reservoir.ReservoirLayer(n_inputs, 135, n_steps, dim1, is_input=True, homeostasis=True)
-    s1 = feedforward.SpikingLayer(270, 100, n_steps, homeostasis=True)
+    dim2 = [10, 10, 4]
+    r1 = reservoir.ReservoirLayer(int(n_inputs/2), 135, n_steps, dim1, is_input=True, homeostasis=True)
+    r2 = reservoir.ReservoirLayer(int(n_inputs/2), 135, n_steps, dim1, is_input=True, homeostasis=True)
+    s1 = reservoir.ReservoirLayer(270, 135, n_steps, dim1, is_input=True, homeostasis=True)
+    # s1 = feedforward.SpikingLayer(270, 130, n_steps, homeostasis=True)
     # s2 = feedforward.SpikingLayer(100, n_classes, n_steps, homeostasis=True)
     accuracy = 0
     best_acc_e = 0
@@ -102,10 +104,10 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
         for i in tqdm(range(len(x_train))):  # train phase
             r1.reset()
             r2.reset()
-            # s1.reset()
+            s1.reset()
             x = np.asarray(x_train[i].todense())
-            o_r1 = r1.forward(x)
-            o_r2 = r1.forward(x)
+            o_r1 = r1.forward(x[:, 0: int(n_inputs/2)])
+            o_r2 = r2.forward(x[:, int(n_inputs/2): n_inputs])
             o_r3 = np.concatenate((o_r1, o_r2), 1)
             o_s1 = s1.forward(o_r3)
             fire_count = np.sum(o_s1, axis=0)
@@ -114,10 +116,11 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
 
         for i in tqdm(range(len(x_test))):  # test phase
             r1.reset()
+            r2.reset()
             # s1.reset()
             x = np.asarray(x_test[i].todense())
-            o_r1 = r1.forward(x)
-            o_r2 = r1.forward(x)
+            o_r1 = r1.forward(x[:, 0: int(n_inputs/2)])
+            o_r2 = r2.forward(x[:, int(n_inputs/2): n_inputs])
             o_r3 = np.concatenate((o_r1, o_r2), 1)
             o_s1 = s1.forward(o_r3)
             fire_count = np.sum(o_s1, axis=0)
