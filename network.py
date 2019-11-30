@@ -1,13 +1,14 @@
 import numpy as np
 from tqdm import tqdm
 import sys
+import loadDataset
 
 import feedforward
 import reservoir
 import svm
 
 
-def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier):
+def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier, data_set):
     stdp = False  # stdp enabled
     dim1 = [3, 3, 15]
     dim2 = [9, 9, 20]
@@ -102,11 +103,18 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
     elif classifier == "svmcv":
         samples = []
         label = []
+        record = np.zeros(n_classes)
         for i in tqdm(range(len(x_train))):  # train phase
             r1.reset()
             # r2.reset()
             # s1.reset()
-            x = np.asarray(x_train[i].todense())
+            if data_set == "TI46":
+                x = np.asarray(x_train[i].todense())
+            elif data_set == "MNIST" and record[y_train[i]] < 100:
+                x = loadDataset.genrate_poisson_spikes(x_train[i], n_steps)
+                record[y_train[i]] += 1
+            else:
+                continue
             o_r1 = r1.forward(x) #[:, 0: int(n_inputs/2)])
             # o_r2 = r2.forward(x[:, int(n_inputs/2): n_inputs])
             # o_r3 = np.concatenate((o_r1, o_r2), 1)
@@ -114,7 +122,6 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
             fire_count = np.sum(o_r1, axis=0)
             samples.append(fire_count)
             label.append(y_train[i])
-
         # for i in tqdm(range(len(x_test))):  # test phase
         #    r1.reset()
         #    r2.reset()

@@ -10,7 +10,7 @@ def dist(p1, p2):
 
 class ReservoirLayer:
     def __init__(self, n_inputs, n_outputs, n_steps, dim, tau_m=64, tau_s=8,
-                 threshold=15, refrac=2, weight_scale=8, weight_limit=8, is_input=False,
+                 threshold=10, refrac=2, weight_scale=8, weight_limit=8, is_input=False,
                  n_input_connect=32, homeostasis=False, stdp_r=False, stdp_i=False, dtype=np.float32):
         self.dtype = dtype
         self.n_inputs = n_inputs

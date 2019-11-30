@@ -11,7 +11,7 @@ def plot_v(v, num):
 
 class SpikingLayer:
     def __init__(self, n_inputs, n_outputs, n_steps, tau_m=64, tau_s=8, tau_c=64, cal_mid=5, cal_margin=3,
-                 threshold=15, refrac=2, weight_scale=8, weight_limit=8, is_input=False, n_input_connect=32,
+                 threshold=10, refrac=2, weight_scale=8, weight_limit=8, is_input=False, n_input_connect=32,
                  delta_pot=0.006, delta_dep=0.006, stdp_i=False, homeostasis=False, dtype=np.float32):
         self.dtype = dtype
         self.n_inputs = n_inputs
