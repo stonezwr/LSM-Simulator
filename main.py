@@ -44,7 +44,7 @@ if __name__ == "__main__":
         y_test = np.array(testset.targets, dtype=np.int)
 
     elif data_set == "TI46":
-        speaker_per_class = 1
+        speaker_per_class = 4
         data_path = os.path.expanduser("./TI46_alpha")
         x_train, x_test, y_train, y_test = loadDataset.loadTI46Alpha(data_path, speaker_per_class, n_steps, n_channels)
     else:

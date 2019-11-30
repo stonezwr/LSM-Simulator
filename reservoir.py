@@ -113,14 +113,14 @@ class ReservoirLayer:
             ref[ref > 0] = ref[ref > 0] - 1
             v_thr = self.v - self.threshold
             out = np.zeros(self.n_outputs, dtype=self.dtype)
-            out[v_thr > 0] = 1.0
+            out[v_thr > 0] = 1
             outputs.append(out)
             self.pre_out = out
             ref[v_thr > 0] = self.refrac
             self.v[v_thr > 0] = 0
 
             if self.homeostasis:
-                self.threshold = self.threshold - self.threshold / 32
+                self.threshold = self.threshold - self.threshold / 64
                 self.threshold[out == 1] = self.threshold[out == 1] + 1
                 self.threshold[self.threshold < 8] = 8
                 self.threshold[self.threshold > 32] = 32
@@ -135,15 +135,12 @@ class ReservoirLayer:
                 self.trace_x_r[self.excitatoty == -1] = self.trace_x_r[self.excitatoty == -1] / self.stdp_TAU_X_TRACE_I
                 self.trace_x_r[self.pre_out == 1] = self.trace_x_r[self.pre_out == 1] + 1
 
-                m_y = np.repeat(self.trace_y, self.n_outputs)
-                m_y = m_y.reshape((self.n_outputs, self.n_outputs))
-                m_y = m_y.T
+                m_y = np.tile(self.trace_y, (self.n_outputs, 1))
                 w_tmp = self.A_neg * self.stdp_lambda * m_y
                 w_tmp[self.w_r < 0] = -w_tmp[self.w_r < 0]
                 self.w_r[self.pre_out == 1, :] = self.w_r[self.pre_out == 1, :] - w_tmp[self.pre_out == 1, :]
 
-                m_x = np.repeat(self.trace_x_r, self.n_outputs)
-                m_x = m_x.reshape((self.n_outputs, self.n_outputs))
+                m_x = np.tile(self.trace_x_r, (self.n_outputs, 1)).T
                 w_tmp = self.A_pos * self.stdp_lambda * m_x
                 w_tmp[self.w_r < 0] = -w_tmp[self.w_r < 0]
                 self.w_r[:, out == 1] = self.w_r[:, out == 1] + w_tmp[:, out == 1]
@@ -155,14 +152,16 @@ class ReservoirLayer:
                 in_s = inputs[t, :]
                 self.trace_x_i[in_s == 1] = self.trace_x_i[in_s == 1] + 1
                 self.trace_x_i = self.trace_x_i / self.stdp_TAU_X_TRACE_E
-                m_y = np.repeat(self.trace_y, self.n_inputs)
-                m_y = m_y.reshape((self.n_outputs, self.n_inputs))
-                m_y = m_y.T
+                m_y = np.tile(self.trace_y, (self.n_inputs, 1))
+                # m_y = np.repeat(self.trace_y, self.n_inputs)
+                # m_y = m_y.reshape((self.n_outputs, self.n_inputs))
+                # m_y = m_y.T
                 w_tmp = self.A_neg * self.stdp_lambda * m_y
                 w_tmp[self.w < 0] = -w_tmp[self.w < 0]
                 self.w[in_s == 1, :] = self.w[in_s == 1, :] - w_tmp[in_s == 1, :]
-                m_x = np.repeat(self.trace_x_i, self.n_outputs)
-                m_x = m_x.reshape((self.n_inputs, self.n_outputs))
+                m_x = np.tile(self.trace_x_r, (self.n_outputs, 1)).T
+                # m_x = np.repeat(self.trace_x_i, self.n_outputs)
+                # m_x = m_x.reshape((self.n_inputs, self.n_outputs))
                 w_tmp = self.A_pos * self.stdp_lambda * m_x
                 w_tmp[self.w < 0] = -w_tmp[self.w < 0]
                 self.w[:, out == 1] = self.w[:, out == 1] + w_tmp[:, out == 1]

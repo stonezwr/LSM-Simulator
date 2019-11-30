@@ -12,14 +12,14 @@ def plot_v(v, num):
 class SpikingLayer:
     def __init__(self, n_inputs, n_outputs, n_steps, tau_m=64, tau_s=8, tau_c=64, cal_mid=5, cal_margin=3,
                  threshold=15, refrac=2, weight_scale=8, weight_limit=8, is_input=False, n_input_connect=32,
-                 delta_pot=0.006, delta_dep=0.006, stdp_i=False, dtype=np.float32):
+                 delta_pot=0.006, delta_dep=0.006, stdp_i=False, homeostasis=False, dtype=np.float32):
         self.dtype = dtype
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
         self.tau_m = tau_m
         self.tau_s = tau_s
         self.tau_c = tau_c
-        self.threshold = threshold
+        self.threshold = np.ones(self.n_outputs, dtype=self.dtype) * threshold
         self.refrac = refrac
         self.weight_scale = weight_scale
         self.n_steps = n_steps
@@ -27,6 +27,7 @@ class SpikingLayer:
         self.cal_margin = cal_margin
         self.delta_pot = delta_pot
         self.delta_dep = delta_dep
+        self.homeostasis = homeostasis
         self.stdp_i = stdp_i
         self.stdp_lambda = 1 / 512
         self.stdp_TAU_X_TRACE = 4
@@ -79,17 +80,23 @@ class SpikingLayer:
             self.v[ref > 0] = 0
             ref[ref > 0] = ref[ref > 0] - 1
             v_all.append(self.v)
-
+            v_thr = self.v - self.threshold
             out = np.zeros(self.n_outputs, dtype=self.dtype)
-            out[self.v > self.threshold] = 1.0
+            out[v_thr > 0] = 1
             outputs.append(out)
 
             self.cal[self.v > self.threshold] = self.cal[self.v > self.threshold] + 1
             cal_all.append(self.cal)
             if label >= 0:
                 self.calcuim_supervised_rule(epoch, np.asarray(inputs[t, :]))
-            self.v[self.v > self.threshold] = 0
-            ref[self.v > self.threshold] = self.refrac
+            self.v[v_thr > 0] = 0
+            ref[v_thr > 0] = self.refrac
+
+            if self.homeostasis:
+                self.threshold = self.threshold - self.threshold / 64
+                self.threshold[out == 1] = self.threshold[out == 1] + 1
+                self.threshold[self.threshold < 8] = 8
+                self.threshold[self.threshold > 32] = 32
 
             if self.stdp_i:
                 in_s = inputs[t, :]
@@ -98,15 +105,12 @@ class SpikingLayer:
                 self.trace_y[out == 1] = self.trace_y[out == 1] + 1
                 self.trace_x[in_s == 1] = self.trace_x[in_s == 1] + 1
 
-                m_y = np.repeat(self.trace_y, self.n_inputs)
-                m_y = m_y.reshape((self.n_outputs, self.n_inputs))
-                m_y = m_y.T
+                m_y = np.tile(self.trace_y, (self.n_inputs, 1))
                 w_tmp = self.A_neg * self.stdp_lambda * m_y
                 w_tmp[self.w < 0] = -w_tmp[self.w < 0]
                 self.w[in_s == 1, :] = self.w[in_s == 1, :] - w_tmp[in_s == 1, :]
 
-                m_x = np.repeat(self.trace_x, self.n_outputs)
-                m_x = m_x.reshape((self.n_inputs, self.n_outputs))
+                m_x = np.tile(self.trace_x, (self.n_outputs, 1)).T
                 w_tmp = self.A_pos * self.stdp_lambda * m_x
                 w_tmp[self.w < 0] = -w_tmp[self.w < 0]
                 self.w[:, out == 1] = self.w[:, out == 1] + self.stdp_lambda * w_tmp[:, out == 1]
