@@ -73,9 +73,11 @@ class SpikingLayer:
                 teacher = np.zeros(self.n_outputs, dtype=np.int)
                 teacher[label] = 1
                 self.v[(teacher == 1) & (self.cal < (self.cal_mid + 1))] = \
-                    self.v[(teacher == 1) & (self.cal < (self.cal_mid + 1))] + self.threshold
+                    self.v[(teacher == 1) & (self.cal < (self.cal_mid + 1))] + \
+                    self.threshold[(teacher == 1) & (self.cal < (self.cal_mid + 1))]
                 self.v[(teacher == 0) & (self.cal > (self.cal_mid - 1))] = \
-                    self.v[(teacher == 0) & (self.cal > (self.cal_mid - 1))] - self.threshold * 0.75
+                    self.v[(teacher == 0) & (self.cal > (self.cal_mid - 1))] - \
+                    self.threshold[(teacher == 0) & (self.cal > (self.cal_mid - 1))] * 0.75
 
             self.v[ref > 0] = 0
             ref[ref > 0] = ref[ref > 0] - 1

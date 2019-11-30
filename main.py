@@ -1,7 +1,9 @@
 import os
 import sys
 import loadDataset
-import network
+import mnist_lsm
+import mnist_d_lsm
+import mnist_d_lsm_feedforward
 import numpy as np
 import random
 
@@ -17,12 +19,11 @@ if __name__ == "__main__":
     n_steps = 400
     n_channels = 784
     n_classes = 10
-    epoches = 300
+    epoches = 150
     # data_set = "TI46"
     data_set = "MNIST"
 
     # classifier = "calcium_supervised"
-    # classifier = "svmcv"
     classifier = "svmcv"
 
     dtype = np.float32
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     if classifier == "calcium_supervised":
         x_train, y_train = shuffle_dataset(x_train, y_train)
 
-    accuracy, e = network.lsm(n_channels, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier, data_set)
+    accuracy, e = mnist_d_lsm.lsm(n_channels, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier, data_set)
     print("best accuracy: %0.2f%% is achieved at epoch %d" % (accuracy*100, e))
 
 
