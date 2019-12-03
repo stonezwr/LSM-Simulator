@@ -39,7 +39,12 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
             for i in tqdm(range(len(x_train))):  # train phase
                 r1.reset()
                 s1.reset()
-                x = np.asarray(x_train[i].todense())
+                if data_set == "TI46":
+                    x = np.asarray(x_train[i].todense())
+                elif data_set == "MNIST":
+                    x = loadDataset.genrate_poisson_spikes(x_train[i], n_steps)
+                else:
+                    continue
                 o_r1 = r1.forward(x)
                 s1.forward(o_r1, e, y_train[i])
 
@@ -47,7 +52,12 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
             for i in tqdm(range(len(x_test))):  # test phase
                 r1.reset()
                 s1.reset()
-                x = np.asarray(x_test[i].todense())
+                if data_set == "TI46":
+                    x = np.asarray(x_test[i].todense())
+                elif data_set == "MNIST":
+                    x = loadDataset.genrate_poisson_spikes(x_test[i], n_steps)
+                else:
+                    continue
                 o_r1 = r1.forward(x)
                 o_s1 = s1.forward(o_r1)
 
@@ -65,14 +75,24 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
         test_samples = []
         for i in tqdm(range(len(x_train))):  # train phase
             r1.reset()
-            x = np.asarray(x_train[i].todense())
+            if data_set == "TI46":
+                x = np.asarray(x_train[i].todense())
+            elif data_set == "MNIST":
+                x = loadDataset.genrate_poisson_spikes(x_train[i], n_steps)
+            else:
+                continue
             o_r1 = r1.forward(x)
             fire_count = np.sum(o_r1, axis=0)
             train_samples.append(fire_count)
 
         for i in tqdm(range(len(x_test))):
             r1.reset()
-            x = np.asarray(x_test[i].todense())
+            if data_set == "TI46":
+                x = np.asarray(x_test[i].todense())
+            elif data_set == "MNIST":
+                x = loadDataset.genrate_poisson_spikes(x_test[i], n_steps)
+            else:
+                continue
             o_r1 = r1.forward(x)
             fire_count = np.sum(o_r1, axis=0)
             test_samples.append(fire_count)
@@ -82,14 +102,12 @@ def lsm(n_inputs, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test,
     elif classifier == "svmcv":
         samples = []
         label = []
-        record = np.zeros(n_classes)
         for i in tqdm(range(len(x_train))):
             r1.reset()
             if data_set == "TI46":
                 x = np.asarray(x_train[i].todense())
-            elif data_set == "MNIST" and record[y_train[i]] < 100:
+            elif data_set == "MNIST":
                 x = loadDataset.genrate_poisson_spikes(x_train[i], n_steps)
-                record[y_train[i]] += 1
             else:
                 continue
             o_r1 = r1.forward(x)

@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
     dtype = np.float32
 
-
     if data_set == "MNIST":
         data_path = os.path.expanduser("./mnist")
 
