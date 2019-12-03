@@ -29,7 +29,7 @@ def genrate_poisson_spikes(data, n_steps):
     return spikes
 
 
-def loadTI46Alpha(data_path, speaker_per_class, n_steps, n_channels):
+def loadTI46Alpha(data_path, speaker_per_class, n_steps, n_channels, classifier):
     if not os.path.exists(data_path):
         print('Given path {} not found'.format(data_path))
         sys.exit(-1)
@@ -65,10 +65,14 @@ def loadTI46Alpha(data_path, speaker_per_class, n_steps, n_channels):
                         val.append(1)
 
                 spike = coo_matrix((val, (row, col)), shape=(n_steps, n_channels))
-                #if int(fn[4]) == 3 or int(fn[4]) == 2:
-                #    x_test.append(spike)
-                #    y_test.append(label)
-                #else:
-                x_train.append(spike)
-                y_train.append(label)
+                if classifier == "svmcv":
+                    x_train.append(spike)
+                    y_train.append(label)
+                else:
+                    if int(fn[4]) == 3 or int(fn[4]) == 2:
+                        x_test.append(spike)
+                        y_test.append(label)
+                    else:
+                        x_train.append(spike)
+                        y_train.append(label)
     return x_train, x_test, y_train, y_test

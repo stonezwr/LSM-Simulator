@@ -98,7 +98,7 @@ class ReservoirLayer:
                 d = dist(p[i], p[j])
                 r = random.random()
                 if r < prob * math.exp(-d / factor2):
-                    self.w_r[i][j] = val
+                    self.w_r[i][j] = val * 4
 
     def forward(self, inputs):
         h1 = np.matmul(inputs, self.w)
@@ -120,9 +120,9 @@ class ReservoirLayer:
             self.v[v_thr > 0] = 0
 
             if self.homeostasis:
-                self.threshold = self.threshold - self.threshold / 64
+                self.threshold = self.threshold - self.threshold / 48
                 self.threshold[out == 1] = self.threshold[out == 1] + 1
-                self.threshold[self.threshold < 8] = 8
+                self.threshold[self.threshold < 2] = 2
                 self.threshold[self.threshold > 32] = 32
 
             if self.stdp_r or self.stdp_i:

@@ -1,9 +1,7 @@
 import os
 import sys
 import loadDataset
-import mnist_lsm
-import mnist_d_lsm
-import mnist_d_lsm_feedforward
+import network
 import numpy as np
 import random
 
@@ -16,19 +14,23 @@ def shuffle_dataset(data, label):
 
 
 if __name__ == "__main__":
-    n_steps = 400
-    n_channels = 784
-    n_classes = 10
+    n_steps = 750
+    n_channels = 78
+    n_classes = 26
     epoches = 150
-    # data_set = "TI46"
-    data_set = "MNIST"
+    data_set = "TI46"
 
-    # classifier = "calcium_supervised"
-    classifier = "svmcv"
+    # n_steps = 400
+    # n_channels = 784
+    # n_classes = 10
+    # data_set = "MNIST"
+
+    classifier = "calcium_supervised"
+    # classifier = "svm"
+    # classifier = "svmcv"
 
     dtype = np.float32
 
-    # Check whether a GPU is available
 
     if data_set == "MNIST":
         data_path = os.path.expanduser("./mnist")
@@ -46,9 +48,9 @@ if __name__ == "__main__":
         y_test = np.array(testset.targets, dtype=np.int)
 
     elif data_set == "TI46":
-        speaker_per_class = 16
+        speaker_per_class = 1
         data_path = os.path.expanduser("./TI46_alpha")
-        x_train, x_test, y_train, y_test = loadDataset.loadTI46Alpha(data_path, speaker_per_class, n_steps, n_channels)
+        x_train, x_test, y_train, y_test = loadDataset.loadTI46Alpha(data_path, speaker_per_class, n_steps, n_channels, classifier)
     else:
         print("please choose correct dataset, MNIST or TI46")
         sys.exit(-1)
@@ -56,8 +58,7 @@ if __name__ == "__main__":
     if classifier == "calcium_supervised":
         x_train, y_train = shuffle_dataset(x_train, y_train)
 
-    accuracy, e = mnist_d_lsm.lsm(n_channels, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier, data_set)
+    accuracy, e = network.lsm(n_channels, n_classes, n_steps, epoches, x_train, x_test, y_train, y_test, classifier, data_set)
     print("best accuracy: %0.2f%% is achieved at epoch %d" % (accuracy*100, e))
-
 
 
